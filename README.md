@@ -24,6 +24,8 @@ sandbox/
 
 ## Building the Sandbox Image
 
+Generally you would have a folder for each project so may be you have (or create) a folder named `ms-novel-code`. Within that folder you can extract the sandbox (if you got a zip file for it). This would create a folder `sandbox` in the `ms-novel-code` folder. The instruction assume that the `sandbox` folder is your current working directory.
+
 Navigate to the **parent directory** (`ms-novel-code/`) in your terminal and run the build command, using the `-f` flag to specify the Containerfile location. Choose either Docker or Podman.
 
 **Using Docker:**

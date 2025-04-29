@@ -27,13 +27,13 @@ echo "Using $CONTAINER_CMD for container operations."
 
 # Build base image
 echo "Building base sandbox image..."
-$CONTAINER_CMD build -t sandbox-base:latest -f Containerfile.base .
+$CONTAINER_CMD build -t novel-code-sandbox-base:latest -f Containerfile.base .
 
 # Build Python image with verbose output
 echo "Building Python sandbox image..."
-$CONTAINER_CMD build --progress=plain -t sandbox-python:latest -f Containerfile.python .
+$CONTAINER_CMD build --progress=plain -t novel-code-sandbox:latest -f Containerfile.python .
 
 echo "Container images built successfully!"
 echo ""
 echo "You can run the Python sandbox with:"
-echo "$CONTAINER_CMD run -it --rm -v \$(pwd)/tasks:/sandbox/tasks sandbox-python:latest"
+echo "$CONTAINER_CMD run -it --rm -v \$(pwd)/tasks:/sandbox/tasks novel-code-sandbox:latest"
