@@ -32,26 +32,25 @@ Navigate to the **parent directory** (`ms-novel-code/`) in your terminal and run
 
 ```bash
 # Run from ms-novel-code/ directory
-docker build -t novel-code-sandbox:latest -f sandbox/Containerfile.python .
+docker build -t ms-novel-code-sandbox:latest -f sandbox/Containerfile.python .
 ```
 
 **Using Podman:**
 
 ```bash
 # Run from ms-novel-code/ directory
-podman build -t novel-code-sandbox:latest -f sandbox/Containerfile.python .
+podman build -t ms-novel-code-sandbox:latest -f sandbox/Containerfile.python .
 ```
 
-This will create the `novel-code-sandbox:latest` image containing Python 3, `uv`, and the necessary testing script (`test_runner_script.py`).
+This will create the `ms-novel-code-sandbox:latest` image containing Python 3, `uv`, and the necessary testing script (`test_runner_script.py`).
 
 ## Running the Sandbox Container
 
-You need to run the container **before** using the `validate-batch` or `validate-code` commands from the Novel Code Manager.
 
 **Important:**
-1.  **Choose a name** for your running container (e.g., `novel-code-runner`). You will need this name for the `--container-id` argument.
-2.  **Create a host directory** to share with the container (e.g., `mkdir ../host_tasks`).
-3.  **Mount the host directory** to `/tasks` inside the container using the `-v` flag.
+
+1.  **Create a host directory** to share with the container (e.g., `mkdir ../host_tasks`).
+2.  **Mount the host directory** to `/tasks` inside the container using the `-v` flag.
 
 **Using Docker:**
 
@@ -62,9 +61,9 @@ mkdir -p ../host_tasks
 
 # Run the container in detached mode (-d)
 docker run -d \
-  --name novel-code-runner \
+  --name ms-novel-code-sandbox \
   -v "$(pwd)/../host_tasks:/tasks" \
-  novel-code-sandbox:latest
+  ms-novel-code-sandbox:latest
 ```
 
 **Using Podman:**
@@ -76,19 +75,19 @@ mkdir -p ../host_tasks
 
 # Run the container in detached mode (-d)
 podman run -d \
-  --name novel-code-runner \
+  --name ms-novel-code-sandbox \
   -v "$(pwd)/../host_tasks:/tasks" \
-  novel-code-sandbox:latest
+  ms-novel-code-sandbox:latest
 ```
 
 **Using Podman Desktop / Docker Desktop:**
 
 1.  Open Podman Desktop or Docker Desktop.
 2.  Navigate to the "Images" section.
-3.  Find the `novel-code-sandbox:latest` image.
+3.  Find the `ms-novel-code-sandbox:latest` image.
 4.  Click the "Run" or "Play" button associated with the image.
 5.  In the configuration dialog:
-    *   **Crucially, set a container name** (e.g., `novel-code-runner`). You will need this for the `--container-id` argument when using the Novel Code Manager CLI.
+    *   **Crucially, set a container name** (e.g., `ms-novel-code-sandbox`). You will need this for the `--container-id` argument when using the Novel Code Manager CLI.
     *   **Add a volume mount:**
         *   **Host Path / Source:** Select the host directory you created (e.g., `../host_tasks` relative to your `ms-novel-code` directory). You might need to provide the full absolute path.
         *   **Container Path / Destination:** Set this to `/tasks`.
@@ -96,6 +95,10 @@ podman run -d \
 6.  Click "Start" or "Run Container".
 
 This starts the container in the background, names it, and mounts your host directory to `/tasks` inside the container.
+
+## Test runner script
+
+One the container setup is done, copy the `test_runner_script.py` (provided separately) in the `host_tasks` folder that we created earlier so it is available inside the container.
 
 ## Usage
 
@@ -108,13 +111,13 @@ This is useful for debugging a single task.
 
     ```bash
     # Using Docker
-    docker exec novel-code-runner python /tasks/test_runner_script.py --task-dir /tasks/B1-123
+    docker exec ms-novel-code-sandbox python /tasks/test_runner_script.py --task-dir /tasks/B1-123
 
     # Using Podman
-    podman exec novel-code-runner python /tasks/test_runner_script.py --task-dir /tasks/B1-123
+    podman exec ms-novel-code-sandbox python /tasks/test_runner_script.py --task-dir /tasks/B1-123
     ```
 
-    Replace `novel-code-runner` with your container name and `/tasks/B1-123` with the correct path *inside the container* corresponding to your task folder.
+    Replace `ms-novel-code-sandbox` with your container name and `/tasks/B1-123` with the correct path *inside the container* corresponding to your task folder.
 
     The script will:
     *   Check for `requirements.txt` inside `/tasks/B1-123`.
@@ -122,38 +125,6 @@ This is useful for debugging a single task.
     *   If not found, run tests using the container's default Python 3.12.
     *   Print the detailed test results as a JSON object to standard output.
 
-### 2. Batch Validation (Using Novel Code Manager CLI)
-
-The `validate-batch` and `validate-code` commands now use the running container.
-
-1.  **Ensure Container is Running:** Make sure you have started the sandbox container as described above.
-2.  **Run Validation Command:** From the `novel-code-manager` directory, run the validation command, providing the container name and the path to your *host* shared directory:
-
-    ```bash
-    # Example: Validate a batch file
-    novel-code-manager validate-batch \
-      --file ../data/batches/your_batch.jsonl \
-      --container-id novel-code-runner \
-      --shared-dir ../host_tasks \
-      --output ../data/validation_summary.jsonl
-
-    # Example: Detailed code validation
-    novel-code-manager validate-code \
-      --file ../data/batches/your_batch.jsonl \
-      --container-id novel-code-runner \
-      --shared-dir ../host_tasks \
-      --output ../data/validation_details.jsonl
-    ```
-
-    The commands will:
-    *   Connect to the specified container (`novel-code-runner`).
-    *   For each task in the input file:
-        *   Create a temporary folder (e.g., `B1-123`) inside your host shared directory (`../host_tasks`).
-        *   Write `main.py`, `tests.py`, `data.json`, and `requirements.txt` (if needed) into that folder.
-        *   Execute the necessary commands (`uv venv`, `uv pip install`, `python test_runner_script.py`) inside the container via `docker/podman exec`, targeting the corresponding `/tasks/B1-123` directory.
-        *   Retrieve the JSON results.
-        *   Clean up the temporary folder on the host.
-    *   Aggregate results and save the output file.
 
 ## Accessing the Container Shell
 
@@ -161,20 +132,20 @@ If you need direct shell access to the running container:
 
 ```bash
 # Using Docker
-docker exec -it novel-code-runner /bin/bash
+docker exec -it ms-novel-code-sandbox /bin/bash
 
 # Using Podman
-podman exec -it novel-code-runner /bin/bash
+podman exec -it ms-novel-code-sandbox /bin/bash
 ```
 
 ## Stopping the Container
 
 ```bash
 # Using Docker
-docker stop novel-code-runner
-docker rm novel-code-runner
+docker stop ms-novel-code-sandbox
+docker rm ms-novel-code-sandbox
 
 # Using Podman
-podman stop novel-code-runner
-podman rm novel-code-runner
+podman stop ms-novel-code-sandbox
+podman rm ms-novel-code-sandbox
 ```
