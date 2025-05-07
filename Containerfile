@@ -1,8 +1,15 @@
 # Python sandbox environment
-FROM sandbox-base:latest
+FROM alpine:latest
 
-# Install Python 3.12 and dependencies
-RUN apk add --no-cache \
+# Install common tools and Python
+RUN apk update && \
+    apk add --no-cache \
+    bash \
+    curl \
+    wget \
+    git \
+    ca-certificates \
+    tzdata \
     python3 \
     python3-dev \
     py3-pip \
@@ -23,11 +30,10 @@ RUN python -m venv /tmp/venv && \
 # Verify uv installation
 RUN which uv && uv --version
 
-# Make sure tasks directory exists and has proper permissions
-# This will be the mount point for host tasks
+# Create directory for shared tasks with proper permissions
 RUN mkdir -p /tasks && chmod 777 /tasks
 
-# Set working directory to /tasks
+# Set working directory
 WORKDIR /tasks
 
 # Keep container running

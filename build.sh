@@ -25,15 +25,11 @@ fi
 
 echo "Using $CONTAINER_CMD for container operations."
 
-# Build base image
-echo "Building base sandbox image..."
-$CONTAINER_CMD build -t ms-novel-code-sandbox-base:latest -f Containerfile.base .
-
-# Build Python image with verbose output
+# Build Python sandbox image with verbose output
 echo "Building Python sandbox image..."
-$CONTAINER_CMD build --progress=plain -t ms-novel-code-sandbox:latest -f Containerfile.python .
+$CONTAINER_CMD build --progress=plain -t ms-novel-code-sandbox:latest -f Containerfile .
 
 echo "Container images built successfully!"
 echo ""
 echo "You can run the Python sandbox with:"
-echo "$CONTAINER_CMD run -it --rm -v \$(pwd)/tasks:/sandbox/tasks ms-novel-code-sandbox:latest"
+echo "$CONTAINER_CMD run -it --rm -v \$(pwd)/tasks:/tasks ms-novel-code-sandbox:latest"
