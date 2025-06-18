@@ -120,23 +120,33 @@ podman run -d \
 
 ### Enroot (CLI Only)
 
-Enroot has a different workflow and doesn't run containers as long-running daemons by default. Instead, you start containers for specific tasks:
+Enroot has a different workflow and doesn't run containers as long-running daemons by default. Instead, you start containers for specific tasks.
+
+**Important:** Enroot preserves the host user identity and has minimal isolation compared to Docker/Podman. This can cause issues with tools like `uv` that try to access the host home directory. Use the provided wrapper script or set environment variables to redirect cache directories.
 
 ```bash
 # Create the host directory (if it doesn't exist)
 mkdir -p ../host_tasks
 
-# Basic container start (interactive)
-enroot start --mount "$(pwd)/../host_tasks:/tasks" ms-novel-code-sandbox
+# RECOMMENDED: Use the wrapper script for proper isolation
+./enroot-sandbox.sh
 
-# Start container and run a specific command
-enroot start --mount "$(pwd)/../host_tasks:/tasks" ms-novel-code-sandbox -- /bin/bash
+# OR: Manual start with environment isolation
+enroot start \
+  --mount "$(pwd)/../host_tasks:/tasks" \
+  --env UV_CACHE_DIR=/tasks/.uv_cache \
+  --env UV_DATA_DIR=/tasks/.uv_data \
+  --env PYTHONUSERBASE=/tasks/.python_user \
+  --env HOME=/tasks \
+  ms-novel-code-sandbox -- /bin/bash
 
-# Start container with a working directory
-enroot start --mount "$(pwd)/../host_tasks:/tasks" --workdir /tasks ms-novel-code-sandbox
-
-# Start container and run the test runner script
-enroot start --mount "$(pwd)/../host_tasks:/tasks" ms-novel-code-sandbox -- \
+# Run the test runner script with proper environment
+enroot start \
+  --mount "$(pwd)/../host_tasks:/tasks" \
+  --env UV_CACHE_DIR=/tasks/.uv_cache \
+  --env UV_DATA_DIR=/tasks/.uv_data \
+  --env HOME=/tasks \
+  ms-novel-code-sandbox -- \
   bash -c "cd /tasks/B1-123 && uv run python /tasks/test_runner_script_ng.py --task-dir /tasks/B1-123"
 ```
 
@@ -296,6 +306,21 @@ Enroot is particularly beneficial in HPC environments because:
 - **Better performance:** Direct access to host resources
 - **GPU integration:** Seamless NVIDIA GPU access without special configuration
 - **User namespace:** Runs as unprivileged user by default
+
+### Choosing the Right Tool
+
+**Use Docker/Podman when:**
+- You need strong isolation between container and host
+- You're developing on a personal workstation
+- You want familiar container behavior
+- You need easy debugging and development workflows
+
+**Use Enroot when:**
+- You're working in HPC/cluster environments
+- You need maximum performance with minimal overhead
+- You require seamless GPU access
+- You're running in environments where Docker/Podman aren't available
+- Your workload benefits from direct host resource access
 
 ### Integration with HPC Schedulers
 Enroot works well with job schedulers like SLURM:

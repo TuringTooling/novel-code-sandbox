@@ -1,9 +1,12 @@
 # Python sandbox environment
-FROM alpine:latest
+FROM ubuntu:24.04
+
+# Prevent interactive prompts during package installation
+ENV DEBIAN_FRONTEND=noninteractive
 
 # Install common tools and Python
-RUN apk update && \
-    apk add --no-cache \
+RUN apt-get update && \
+    apt-get install -y \
     bash \
     curl \
     wget \
@@ -12,20 +15,19 @@ RUN apk update && \
     tzdata \
     python3 \
     python3-dev \
-    py3-pip \
+    python3-pip \
+    python3-venv \
     gcc \
-    musl-dev
+    build-essential \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
 
 # Set Python 3 as the default python version
 RUN ln -sf /usr/bin/python3 /usr/bin/python
 
-# Install uv in a way that complies with PEP 668
-# Method 1: Create a temporary virtual environment
-RUN python -m venv /tmp/venv && \
-    . /tmp/venv/bin/activate && \
-    pip install uv && \
-    cp /tmp/venv/bin/uv /usr/local/bin/ && \
-    rm -rf /tmp/venv
+# Install uv using the recommended method
+RUN curl -LsSf https://astral.sh/uv/install.sh | sh
+ENV PATH="/root/.local/bin:$PATH"
 
 # Verify uv installation
 RUN which uv && uv --version
